@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urlshortener
+  namespace: urlshortener
+  labels:
+    app: urlshortener
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: urlshortener
+  template:
+    metadata:
+      labels:
+        app: urlshortener
+    spec:
+      containers:
+        - name: urlshortener
+          build: .
+          image: urlshortener:latest
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:postgres@postgres:5432/urlshortener?sslmode=disable"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: NATS_URL
+              value: "nats://nats:4222"
+            - name: CLICKHOUSE_URL
+              value: "http://clickhouse:8123"
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/shorten
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/shorten
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10

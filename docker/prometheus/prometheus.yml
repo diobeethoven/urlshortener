@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'urlshortener'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        labels:
+          environment: 'development'
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9187']
+        labels:
+          environment: 'development'
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9121']
+        labels:
+          environment: 'development'
+  - job_name: 'clickhouse-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9169']
+        labels:
+          environment: 'development'
+
+rule_files:
+  - 'alert_rules.yml'
+
+alert_rules.yml:
+  groups:
+    - name: urlshortener_alerts
+      rules:
+        - alert: HighRedirectLatency
+          expr: histogram_quantile(0.99, sum(rate(redirect_latency_seconds_bucket[1m])) by (le)) > 0.05
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "P99 redirect latency exceeds 50ms"
+            description: "P99 redirect latency is {{ $value }}s"
+
+        - alert: RedisConnectionDown
+          expr: redis_up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis is down"
+            description: "Redis connection is unavailable"
+
+        - alert: PostgreSQLConnectionDown
+          expr: pg_exporter_connections_active{mode="active"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "PostgreSQL has no active connections"
+            description: "All PostgreSQL connections are idle"

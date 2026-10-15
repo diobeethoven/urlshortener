@@ -1,0 +1,17 @@
+{
+  "name": "urlshortener-core",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "base62": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/base62": "^0.1.0",
+    "typescript": "^5.4.5"
+  }
+}

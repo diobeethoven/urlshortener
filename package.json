@@ -1,0 +1,28 @@
+{
+  "name": "urlshortener",
+  "private": true,
+  "workspaces": [
+    "urlshortener-api",
+    "urlshortener-core",
+    "urlshortener-cache",
+    "urlshortener-db",
+    "urlshortener-nas",
+    "urlshortener-ui"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "vitest run",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
+    "turbo": "^1.13.2",
+    "vitest": "^1.6.0"
+  }
+}

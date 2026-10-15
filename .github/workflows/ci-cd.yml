@@ -1,0 +1,82 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install dependencies
+        run: go mod download && go vet ./...
+
+      - name: Run tests
+        run: go test ./...
+
+  build-docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/urlshortener:latest
+
+  deploy:
+    needs: build-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.28.0'
+
+      - name: Login to EKS
+        uses: aws-actions/amazon-eks-login@v2
+        with:
+          cluster-name: urlshortener-eks
+          role-role-arn: ${{ secrets.AWS_EKS_ROLE_ARN }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -k k8s/
+          kubectl set image deployment/urlshortener urlshortener=${{ secrets.DOCKERHUB_USERNAME }}/urlshortener:latest
+          kubectl rollout status deployment/urlshortener -n urlshortener
+
+  load-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install k6
+        run: |
+          pip install k6
+      - name: Run load test
+        run: k6 run scripts/load-test.js

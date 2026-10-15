@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple URL Shortener</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔗</h1>
+      <h2>URL Shortener</h2>
+    </header>
+
+    <main>
+      <section class="shorten">
+        <h3>Shorten a URL</h3>
+        <form id="shortenForm">
+          <div class="form-group">
+            <label for="urlInput">Long URL</label>
+            <input type="url" id="urlInput" name="url" required placeholder="https://example.com">
+          </div>
+          <div class="form-group">
+            <label for="aliasInput">Custom Alias (optional)</label>
+            <input type="text" id="aliasInput" name="custom_alias" placeholder="custom-name">
+          </div>
+          <button type="submit" class="btn-primary">Shorten</button>
+        </form>
+      </section>
+
+      <section class="history">
+        <h3>Your Links</h3>
+        <p>Shortened links will appear here</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>Fastify • PostgreSQL • Redis • NATS • ClickHouse</p>
+    </footer>
+  </div>
+</body>
+</html>

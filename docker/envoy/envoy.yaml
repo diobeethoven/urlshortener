@@ -1,0 +1,52 @@
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address: { address: 0.0.0.0, port: 80 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.envoy.filters.network.http_connection_manager
+                stat_prefix: ingress_http
+                codec_type: AUTO
+                route_configurations:
+                  - name: local_route
+                    vhosts:
+                      - name: shortener.local
+                      domains: ["*"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: url_shortener_svc }
+                  - name: health_check_route
+                    vhosts:
+                      - name: health
+                      domains: ["*"]
+                      routes:
+                        - match: { path: "/health" }
+                          route: { cluster: envoy_admin }
+                more_filters:
+                  - name: envoy.filters.http.router
+                cluster_manager:
+                  route_type: STRICT_DNS
+  clusters:
+    - name: url_shortener_svc
+      type: logical_dns
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: url_shortener_svc
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: host.docker.internal, port: { number: 8080 } }
+    - name: envoy_admin
+      type: STRICT_DNS
+      connect_timeout: 0.25s
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: envoy_admin
+        endpoints:
+          - endpoint:
+              address:
+                socket_address: { address: 127.0.0.1, port: { number: 9901 } }
