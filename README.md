@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # URL Shortening Service - Architecture and Design
 
 ## Overview
@@ -265,3 +266,6 @@ kubectl apply -f k8s/
 | **Availability** | 99.99% |
 | **Cache Hit Ratio** | > 95% |
 | **Database Write Latency** | < 5ms |
+=======
+
+>>>>>>> 495efb14adc5592e85ec5e77a366fe1807d243c6
